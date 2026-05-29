@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MakananKhasController;
 use App\Http\Controllers\WilayahController;
 
 // Halaman Provinsi
@@ -17,3 +18,7 @@ Route::get('/kecamatan/provinsi/{provinceId}/kota/{regencyId}', [WilayahControll
 // Halaman Kelurahan (filter by kecamatan)
 Route::get('/kelurahan', [WilayahController::class, 'subdistricts']);
 Route::get('/kelurahan/provinsi/{provinceId}/kota/{regencyId}/kecamatan/{districtId}', [WilayahController::class, 'subdistricts']);
+
+Route::resource('makanan-khas', MakananKhasController::class)
+    ->parameters(['makanan-khas' => 'makanan_khas'])
+    ->except(['show']);

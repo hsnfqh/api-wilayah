@@ -3,122 +3,95 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;  // Untuk panggil API
+use Illuminate\Support\Facades\Http;
 
 class WilayahController extends Controller
 {
-    // BASE URL API
-    private $baseUrl = 'https://ihsaninh.github.io/wilayah-indonesia/';
-    
-    // ========== 1. AMBIL SEMUA PROVINSI ==========
-    private function getProvinces()
+    private string $baseUrl = 'https://ihsaninh.github.io/wilayah-indonesia/';
+
+    private function fetchJson(string $path): array
     {
-        $response = Http::get($this->baseUrl . 'provinces.json');
-        
-        if ($response->successful()) {
-            return $response->json();  // [{"id":11,"value":"ACEH"}, ...]
+        $response = Http::timeout(10)->get($this->baseUrl . ltrim($path, '/'));
+
+        if (! $response->successful()) {
+            return [];
         }
-        
-        return [];
+
+        $payload = $response->json();
+
+        return is_array($payload) ? $payload : [];
     }
-    
-    // ========== 2. AMBIL KOTA BERDASARKAN ID PROVINSI ==========
-    private function getRegencies($provinceId)
+
+    private function getProvinces(): array
     {
-        $url = $this->baseUrl . $provinceId . '/regencies.json';
-        $response = Http::get($url);
-        
-        if ($response->successful()) {
-            return $response->json();
-        }
-        
-        return [];
+        return $this->fetchJson('provinces.json');
     }
-    
-    // ========== 3. AMBIL KECAMATAN BERDASARKAN ID KOTA ==========
-    private function getDistricts($provinceId, $regencyId)
+
+    private function getRegencies(string $provinceId): array
     {
-        $url = $this->baseUrl . $provinceId . '/' . $regencyId . '/district.json';
-        $response = Http::get($url);
-        
-        if ($response->successful()) {
-            return $response->json();
-        }
-        
-        return [];
+        return $this->fetchJson("{$provinceId}/regencies.json");
     }
-    
-    // ========== 4. AMBIL KELURAHAN BERDASARKAN ID KECAMATAN ==========
-    private function getSubdistricts($provinceId, $regencyId, $districtId)
+
+    private function getDistricts(string $provinceId, string $regencyId): array
     {
-        $url = $this->baseUrl . $provinceId . '/' . $regencyId . '/' . $districtId . '/subdistrict.json';
-        $response = Http::get($url);
-        
-        if ($response->successful()) {
-            return $response->json();
-        }
-        
-        return [];
+        return $this->fetchJson("{$provinceId}/{$regencyId}/district.json");
     }
-    
-    // ========== HALAMAN PROVINSI ==========
+
+    private function getSubdistricts(string $provinceId, string $regencyId, string $districtId): array
+    {
+        return $this->fetchJson("{$provinceId}/{$regencyId}/{$districtId}/subdistrict.json");
+    }
+
+    private function cleanId(?string $value): ?string
+    {
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        return preg_match('/^\d+$/', $value) ? $value : null;
+    }
+
     public function provinces()
     {
         $provinces = $this->getProvinces();
+
         return view('wilayah.provinces', compact('provinces'));
     }
-    
-    // ========== HALAMAN KOTA (Filter by Provinsi) ==========
-    public function regencies($provinceId = null)
+
+    public function regencies(Request $request, ?string $provinceId = null)
     {
+        $provinceId = $this->cleanId($provinceId ?? $request->query('provinceId'));
         $provinces = $this->getProvinces();
-        $regencies = [];
-        
-        if ($provinceId) {
-            $regencies = $this->getRegencies($provinceId);
-        }
-        
+        $regencies = $provinceId ? $this->getRegencies($provinceId) : [];
+
         return view('wilayah.regencies', compact('provinces', 'regencies', 'provinceId'));
     }
-    
-    // ========== HALAMAN KECAMATAN (Filter by Kota) ==========
-    public function districts($provinceId = null, $regencyId = null)
+
+    public function districts(Request $request, ?string $provinceId = null, ?string $regencyId = null)
     {
+        $provinceId = $this->cleanId($provinceId ?? $request->query('provinceId'));
+        $regencyId = $this->cleanId($regencyId ?? $request->query('regencyId'));
+
         $provinces = $this->getProvinces();
-        $regencies = [];
-        $districts = [];
-        
-        if ($provinceId) {
-            $regencies = $this->getRegencies($provinceId);
-        }
-        
-        if ($provinceId && $regencyId) {
-            $districts = $this->getDistricts($provinceId, $regencyId);
-        }
-        
+        $regencies = $provinceId ? $this->getRegencies($provinceId) : [];
+        $districts = $provinceId && $regencyId ? $this->getDistricts($provinceId, $regencyId) : [];
+
         return view('wilayah.districts', compact('provinces', 'regencies', 'districts', 'provinceId', 'regencyId'));
     }
-    
-    // ========== HALAMAN KELURAHAN (Filter by Kecamatan) ==========
-    public function subdistricts($provinceId = null, $regencyId = null, $districtId = null)
+
+    public function subdistricts(Request $request, ?string $provinceId = null, ?string $regencyId = null, ?string $districtId = null)
     {
+        $provinceId = $this->cleanId($provinceId ?? $request->query('provinceId'));
+        $regencyId = $this->cleanId($regencyId ?? $request->query('regencyId'));
+        $districtId = $this->cleanId($districtId ?? $request->query('districtId'));
+
         $provinces = $this->getProvinces();
-        $regencies = [];
-        $districts = [];
-        $subdistricts = [];
-        
-        if ($provinceId) {
-            $regencies = $this->getRegencies($provinceId);
-        }
-        
-        if ($provinceId && $regencyId) {
-            $districts = $this->getDistricts($provinceId, $regencyId);
-        }
-        
-        if ($provinceId && $regencyId && $districtId) {
-            $subdistricts = $this->getSubdistricts($provinceId, $regencyId, $districtId);
-        }
-        
+        $regencies = $provinceId ? $this->getRegencies($provinceId) : [];
+        $districts = $provinceId && $regencyId ? $this->getDistricts($provinceId, $regencyId) : [];
+        $subdistricts = $provinceId && $regencyId && $districtId
+            ? $this->getSubdistricts($provinceId, $regencyId, $districtId)
+            : [];
+
         return view('wilayah.subdistricts', compact('provinces', 'regencies', 'districts', 'subdistricts', 'provinceId', 'regencyId', 'districtId'));
     }
 }
