@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kecamatan Indonesia</title>
+    <title>Kelurahan Indonesia</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -31,24 +31,23 @@
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background: linear-gradient(135deg, #001d3d 0%, #003566 100%); color: white; }
-        .btn { background: #003566; color: white; padding: 5px 12px; text-decoration: none; border-radius: 15px; font-size: 12px; }
         .total { text-align: right; margin-top: 20px; color: #666; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Data Kecamatan</h1>
-        <div class="subtitle">Pilih provinsi dan kota/kabupaten untuk melihat kecamatan</div>
+        <h1>Data Kelurahan</h1>
+        <div class="subtitle">Pilih provinsi, kota/kabupaten, dan kecamatan untuk melihat kelurahan</div>
 
         <div class="menu">
             <a href="/">Provinsi</a>
             <a href="/kota">Kota/Kabupaten</a>
-            <a href="/kecamatan" style="background: #001d3d;">Kecamatan</a>
-            <a href="/kelurahan">Kelurahan</a>
+            <a href="/kecamatan">Kecamatan</a>
+            <a href="/kelurahan" style="background: #001d3d;">Kelurahan</a>
         </div>
 
         <div class="filter">
-            <form method="GET" action="/kecamatan" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <form method="GET" action="/kelurahan" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <select name="provinceId" onchange="this.form.submit()">
                     <option value="">-- Pilih Provinsi --</option>
                     @foreach($provinces as $prov)
@@ -57,7 +56,7 @@
                         </option>
                     @endforeach
                 </select>
-                <select name="regencyId">
+                <select name="regencyId" onchange="this.form.submit()">
                     <option value="">-- Pilih Kota/Kabupaten --</option>
                     @foreach($regencies as $regency)
                         <option value="{{ $regency['id'] }}" {{ $regencyId == $regency['id'] ? 'selected' : '' }}>
@@ -65,35 +64,38 @@
                         </option>
                     @endforeach
                 </select>
-                <button type="submit" class="btn-filter">Tampilkan Kecamatan</button>
+                <select name="districtId">
+                    <option value="">-- Pilih Kecamatan --</option>
+                    @foreach($districts as $district)
+                        <option value="{{ $district['id'] }}" {{ $districtId == $district['id'] ? 'selected' : '' }}>
+                            {{ $district['value'] }}
+                        </option>
+                    @endforeach
+                </select>
+                <button type="submit" class="btn-filter">Tampilkan Kelurahan</button>
             </form>
         </div>
 
-        @if($provinceId && $regencyId)
+        @if($provinceId && $regencyId && $districtId)
             <div style="overflow-x: auto;">
                 <table>
-                    <thead><tr><th>Kode</th><th>Nama Kecamatan</th><th>Aksi</th></tr></thead>
+                    <thead><tr><th>Kode</th><th>Nama Kelurahan</th></tr></thead>
                     <tbody>
-                        @forelse($districts as $district)
+                        @forelse($subdistricts as $subdistrict)
                             <tr>
-                                <td>{{ $district['id'] }}</td>
-                                <td><strong>{{ $district['value'] }}</strong></td>
-                                <td>
-                                    <a href="/kelurahan/provinsi/{{ $provinceId }}/kota/{{ $regencyId }}/kecamatan/{{ $district['id'] }}" class="btn">
-                                        Lihat Kelurahan
-                                    </a>
-                                </td>
+                                <td>{{ $subdistrict['id'] }}</td>
+                                <td><strong>{{ $subdistrict['value'] }}</strong></td>
                             </tr>
                         @empty
-                            <tr><td colspan="3" style="text-align: center;">Data kecamatan tidak ditemukan</td></tr>
+                            <tr><td colspan="2" style="text-align: center;">Data kelurahan tidak ditemukan</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-            <div class="total">Total Kecamatan: {{ count($districts) }}</div>
+            <div class="total">Total Kelurahan: {{ count($subdistricts) }}</div>
         @else
             <div style="text-align: center; padding: 40px; color: #666; background: #f9f9f9; border-radius: 15px;">
-                Silakan pilih provinsi dan kota/kabupaten dulu.
+                Silakan lengkapi pilihan sampai kecamatan.
             </div>
         @endif
     </div>

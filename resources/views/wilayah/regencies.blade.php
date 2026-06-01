@@ -121,7 +121,7 @@
             <div class="total">Total Kota: {{ count($regencies) }}</div>
         @else
             <div style="text-align: center; padding: 50px; color: #666; background: #f9f9f9; border-radius: 15px;">
-                📌 Silakan pilih provinsi untuk melihat daftar kota/kabupaten
+                Silakan pilih provinsi untuk melihat daftar kota/kabupaten
             </div>
         @endif
         

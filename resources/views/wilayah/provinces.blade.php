@@ -64,13 +64,21 @@
         
         <div style="overflow-x: auto;">
             <table id="provinsiTable">
-                <thead><tr><th>Kode</th><th>Nama Provinsi</th><th>Aksi</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Kode</th>
+                        <th>Nama Provinsi</th>
+                        <th>Aksi</th>
+                    </tr></thead>
                 <tbody>
                     @foreach($provinces as $p)
                     <tr>
                         <td>{{ $p['id'] }}</td>
                         <td><strong>{{ $p['value'] }}</strong></td>
-                        <td><a href="/kota/provinsi/{{ $p['id'] }}" class="btn">Lihat Kota</a></td>
+                        <td style="display: flex; gap: 8px;">
+                            <a href="/kota/provinsi/{{ $p['id'] }}" class="btn">Lihat Kota</a>
+                            <a href="{{ route('makanan-khas.index', ['provinceId' => $p['id']]) }}" class="btn">Lihat Makanan Khas</a>
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
