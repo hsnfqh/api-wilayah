@@ -143,3 +143,4 @@ class MakananKhasController extends Controller
             ->with('success', 'Data makanan khas berhasil dihapus.');
     }
 }
+
